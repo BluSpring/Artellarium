@@ -3,6 +3,7 @@ package xyz.bluspring.worldcorruption
 import com.mojang.brigadier.context.CommandContext
 import net.fabricmc.api.ModInitializer
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents
 import net.fabricmc.fabric.api.`object`.builder.v1.block.entity.FabricBlockEntityTypeBuilder
 import net.minecraft.commands.CommandSourceStack
@@ -18,12 +19,10 @@ import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.item.BlockItem
 import net.minecraft.world.item.Item
 import net.minecraft.world.level.Level
-import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.state.BlockBehaviour
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.chunk.LevelChunk
-import net.minecraft.world.level.material.Material
 import net.minecraft.world.phys.Vec3
 import xyz.bluspring.worldcorruption.block.ArtellicCrystalBlock
 import xyz.bluspring.worldcorruption.block.CorruptionBlock
@@ -44,31 +43,51 @@ class WorldCorruption : ModInitializer {
                                 1
                             }
                     )
+                    .then(
+                        Commands.literal("stop")
+                            .executes {
+                                radius = 0
+                                1
+                            }
+                    )
             )
         }
 
+        ServerLifecycleEvents.SERVER_STOPPING.register {
+            radius = 0
+        }
+
         ServerTickEvents.END_SERVER_TICK.register { server ->
-            val level = server.overworld()
+            for (level in server.allLevels) {
+                val currentRadius = radius * radius
+                val centerCenter = Vec3(center.x + 0.5, center.y + 0.5, center.z + 0.5)
 
-            val currentRadius = radius * radius
-            val centerCenter = Vec3(center.x + 0.5, center.y + 0.5, center.z + 0.5)
+                if (currentRadius <= 0)
+                    return@register
 
-            if (currentRadius <= 0)
-                return@register
+                level.allEntities.forEach { entity ->
+                    if (entity !is LivingEntity)
+                        return@forEach
 
-            level.allEntities.forEach { entity ->
-                if (entity !is LivingEntity)
-                    return@forEach
+                    if (entity.distanceToSqr(centerCenter) >= currentRadius)
+                        return@forEach
 
-                if (entity.distanceToSqr(centerCenter) >= currentRadius)
-                    return@forEach
+                    entity.hurt(CORRUPTION_DAMAGE, 1.35f)
+                }
 
-                entity.hurt(CORRUPTION_DAMAGE, 1.35f)
-            }
+                if (level.worldBorder.maxX < currentRadius + centerCenter.x)
+                    return@register
 
-            if (level.gameTime % 15L == 0L) {
-                radius++
-                corrupt(level)
+                if (level.gameTime % 15L == 0L) {
+                    radius++
+                    corrupt(level)
+                }
+
+                if (level.gameTime % 35L == 0L) {
+                    for (player in level.players()) {
+                        player.playNotifySound(CORRUPTION_SIREN, SoundSource.VOICE, 0.6f, 1f)
+                    }
+                }
             }
         }
     }
@@ -195,5 +214,6 @@ class WorldCorruption : ModInitializer {
         val CORRUPTION_DAMAGE = DamageSource("corruption").bypassArmor().bypassEnchantments().bypassMagic()
 
         val ARTELLIC_UNSTABLE = SoundEvent(ResourceLocation(MOD_ID, "block.artellic_crystal.unstable"))
+        val CORRUPTION_SIREN = SoundEvent(ResourceLocation(MOD_ID, "event.corruption.siren"))
     }
 }

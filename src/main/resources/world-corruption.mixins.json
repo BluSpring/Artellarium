@@ -4,6 +4,7 @@
     "package": "xyz.bluspring.worldcorruption.mixin",
     "compatibilityLevel": "JAVA_17",
     "mixins": [
+        "AllowedSoundConfigMixin",
         "ChunkMapMixin"
     ],
     "client": [

@@ -8,5 +8,15 @@
             }
         ],
         "subtitle": "subtitle.block.artellic_crystal.unstable"
+    },
+    "event.corruption.siren": {
+        "sounds": [
+            {
+                "name": "artellarium:corruption_siren",
+                "stream": true,
+                "volume": 0.3
+            }
+        ],
+        "subtitle": "subtitle.event.corruption.siren"
     }
 }
