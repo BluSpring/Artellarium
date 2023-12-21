@@ -1,0 +1,12 @@
+{
+    "block.artellic_crystal.unstable": {
+        "sounds": [
+            {
+                "name": "artellarium:artellic_crystal/unstable",
+                "stream": true,
+                "volume": 0.6
+            }
+        ],
+        "subtitle": "subtitle.block.artellic_crystal.unstable"
+    }
+}

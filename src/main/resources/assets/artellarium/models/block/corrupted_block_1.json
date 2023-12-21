@@ -1,0 +1,6 @@
+{
+    "parent": "minecraft:block/cube_all",
+    "textures": {
+        "all": "artellarium:block/corrupted_block_1"
+    }
+}

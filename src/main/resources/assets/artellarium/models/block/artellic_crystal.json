@@ -1,0 +1,75 @@
+{
+    "credit": "Made with Blockbench",
+    "textures": {
+        "0": "artellarium:block/artellic_crystal"
+    },
+    "elements": [
+        {
+            "from": [6.5, 15, 7],
+            "to": [9.5, 31, 9],
+            "rotation": {"angle": -22.5, "axis": "y", "origin": [8, 22, 8]},
+            "faces": {
+                "north": {"uv": [2.125, 3, 2.375, 5.25], "texture": "#0"},
+                "east": {"uv": [2.125, 3, 2.375, 5.25], "texture": "#0"},
+                "south": {"uv": [2.125, 3, 2.375, 5.25], "texture": "#0"},
+                "west": {"uv": [2.125, 3, 2.375, 5.25], "texture": "#0"},
+                "up": {"uv": [2.125, 2.625, 2.375, 2.875], "texture": "#0"},
+                "down": {"uv": [2.625, 2.625, 2.875, 2.875], "texture": "#0"}
+            }
+        },
+        {
+            "from": [7, 15, 6.5],
+            "to": [9, 31, 9.5],
+            "rotation": {"angle": -22.5, "axis": "y", "origin": [8, 22, 8]},
+            "faces": {
+                "north": {"uv": [2.125, 3, 2.375, 5.25], "texture": "#0"},
+                "east": {"uv": [2.125, 3, 2.375, 5.25], "texture": "#0"},
+                "south": {"uv": [2.125, 3, 2.375, 5.25], "texture": "#0"},
+                "west": {"uv": [2.125, 3, 2.375, 5.25], "texture": "#0"},
+                "up": {"uv": [2.125, 2.625, 2.375, 2.875], "texture": "#0"},
+                "down": {"uv": [2.625, 2.625, 2.875, 2.875], "texture": "#0"}
+            }
+        },
+        {
+            "from": [7, 14, 7],
+            "to": [9, 32, 9],
+            "rotation": {"angle": -22.5, "axis": "y", "origin": [8, 22, 8]},
+            "faces": {
+                "north": {"uv": [2.125, 3, 2.375, 5.25], "texture": "#0"},
+                "east": {"uv": [2.125, 3, 2.375, 5.25], "texture": "#0"},
+                "south": {"uv": [2.125, 3, 2.375, 5.25], "texture": "#0"},
+                "west": {"uv": [2.125, 3, 2.375, 5.25], "texture": "#0"},
+                "up": {"uv": [2.125, 2.625, 2.375, 2.875], "texture": "#0"},
+                "down": {"uv": [2.625, 2.625, 2.875, 2.875], "texture": "#0"}
+            }
+        }
+    ],
+    "display": {
+        "thirdperson_righthand": {
+            "translation": [0, 7.25, 0]
+        },
+        "thirdperson_lefthand": {
+            "translation": [0, 7.25, 0]
+        },
+        "gui": {
+            "rotation": [16, 0, 0]
+        },
+        "head": {
+            "translation": [0, 18.5, 0],
+            "scale": [1.5, 1.5, 1.5]
+        },
+        "fixed": {
+            "rotation": [-90, 0, 0],
+            "translation": [0, 0, -8]
+        }
+    },
+    "groups": [
+        {
+            "name": "crystal",
+            "origin": [8, 22, 8],
+            "color": 0,
+            "nbt": "{}",
+            "children": [0, 1, 2]
+        }
+    ]
+}

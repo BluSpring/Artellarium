@@ -1,0 +1,15 @@
+{
+    "variants": {
+        "": [
+            {
+                "model": "artellarium:block/corrupted_block_0", "weight": 25
+            },
+            {
+                "model": "artellarium:block/corrupted_block_1", "weight": 25
+            },
+            {
+                "model": "artellarium:block/corrupted_block_2", "weight": 25
+            }
+        ]
+    }
+}

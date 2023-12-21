@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "id": "artellarium",
+  "version": "${version}",
+  "name": "Artellarium",
+  "description": "",
+  "authors": [],
+  "contact": {
+    "repo": "https://github.com/BluSpring/Artellarium"
+  },
+  "license": "MIT",
+  "icon": "assets/artellarium/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "client": [
+      "xyz.bluspring.worldcorruption.client.WorldCorruptionClient"
+    ],
+    "main": [
+      "xyz.bluspring.worldcorruption.WorldCorruption"
+    ]
+  },
+  "mixins": [
+    "world-corruption.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "fabric": "*",
+    "minecraft": "${minecraft_version}"
+  }
+}

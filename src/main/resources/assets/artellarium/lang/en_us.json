@@ -1,0 +1,8 @@
+{
+    "subtitle.block.artellic_crystal.unstable": "Crystal destabilizes",
+    "block.artellarium.artellic_crystal": "Artellic Crystal",
+    "block.artellarium.corrupted_block": "Corrupted Block",
+    "death.attack.corruption": "%1$s was corrupted",
+    "death.attack.corruption.player": "%1$s was corrupted whilst trying to escape %2$s",
+    "death.attack.corruption.item": "%1$s was corrupted whilst trying to escape %2$s wielding %3$s"
+}
