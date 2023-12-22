@@ -6,18 +6,19 @@ import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents
 import net.fabricmc.fabric.api.`object`.builder.v1.block.entity.FabricBlockEntityTypeBuilder
+import net.minecraft.ChatFormatting
 import net.minecraft.commands.CommandSourceStack
 import net.minecraft.commands.Commands
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Registry
+import net.minecraft.network.chat.Component
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.sounds.SoundEvent
-import net.minecraft.sounds.SoundEvents
 import net.minecraft.sounds.SoundSource
 import net.minecraft.world.damagesource.DamageSource
-import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.item.BlockItem
 import net.minecraft.world.item.Item
+import net.minecraft.world.level.ChunkPos
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.state.BlockBehaviour
@@ -27,6 +28,7 @@ import net.minecraft.world.phys.Vec3
 import xyz.bluspring.worldcorruption.block.ArtellicCrystalBlock
 import xyz.bluspring.worldcorruption.block.CorruptionBlock
 import xyz.bluspring.worldcorruption.block.entity.ArtellicCrystalBlockEntity
+import kotlin.random.Random
 
 class WorldCorruption : ModInitializer {
     override fun onInitialize() {
@@ -50,6 +52,22 @@ class WorldCorruption : ModInitializer {
                                 1
                             }
                     )
+                    .then(
+                        Commands.literal("crash")
+                            .executes {
+                                val players = it.source.server.playerList.players.toList()
+
+                                for (player in players) {
+                                    player.connection.disconnect(Component.literal("java.lang.NullPointerException: Could not find server level ").append(Component.literal("Crimecraft Season 3").withStyle(
+                                        ChatFormatting.OBFUSCATED)))
+                                }
+
+                                it.source.server.stopServer()
+                                NullPointerException("Could not find server level Crimecraft Season 3!").printStackTrace()
+
+                                1
+                            }
+                    )
             )
         }
 
@@ -60,25 +78,15 @@ class WorldCorruption : ModInitializer {
         ServerTickEvents.END_SERVER_TICK.register { server ->
             for (level in server.allLevels) {
                 val currentRadius = radius * radius
-                val centerCenter = Vec3(center.x + 0.5, center.y + 0.5, center.z + 0.5)
+                val centerCenter = Vec3(center.x + 0.5, 0.0, center.z + 0.5)
 
                 if (currentRadius <= 0)
                     return@register
 
-                level.allEntities.forEach { entity ->
-                    if (entity !is LivingEntity)
-                        return@forEach
-
-                    if (entity.distanceToSqr(centerCenter) >= currentRadius)
-                        return@forEach
-
-                    entity.hurt(CORRUPTION_DAMAGE, 1.35f)
-                }
-
                 if (level.worldBorder.maxX < currentRadius + centerCenter.x)
                     return@register
 
-                if (level.gameTime % 15L == 0L) {
+                if (level.gameTime % 100L == 0L) {
                     radius++
                     corrupt(level)
                 }
@@ -93,12 +101,12 @@ class WorldCorruption : ModInitializer {
     }
 
     var radius = 0
-    var center = BlockPos.ZERO
+    var center = ChunkPos.ZERO
 
     fun startCorruption(ctx: CommandContext<CommandSourceStack>) {
-        center = BlockPos(ctx.source.position)
+        center = ChunkPos((ctx.source.position.x / 16).toInt(), (ctx.source.position.z / 16).toInt())
 
-        ctx.source.level.playSound(null, center, ARTELLIC_UNSTABLE, SoundSource.BLOCKS, 0.7f, 1f)
+        ctx.source.level.playSound(null, BlockPos(ctx.source.position), ARTELLIC_UNSTABLE, SoundSource.BLOCKS, 0.7f, 1f)
 
         for (i in 0..9) {
             radius = i
@@ -112,31 +120,33 @@ class WorldCorruption : ModInitializer {
         val toX = center.x + radius
         val toZ = center.z + radius
 
-        val radiusSq = radius * radius
-
-        level.players().forEach {
-            val distance = it.distanceToSqr(Vec3.atCenterOf(center))
-            if (distance >= (radiusSq - (5 * 5)) && distance <= (radiusSq + (5 * 5))) {
-                it.playNotifySound(SoundEvents.GENERIC_EXTINGUISH_FIRE, SoundSource.BLOCKS, 0.3f, 1f)
-            }
-        }
-
         val blockPos = BlockPos.MutableBlockPos()
+        val minHeight = level.dimensionType().minY
+        val maxHeight = minHeight + level.dimensionType().logicalHeight
 
         for (x in fromX..toX) {
             for (z in fromZ..toZ) {
-                blockPos.set(x, 0, z)
+                val chunkPos = ChunkPos(x, z)
 
-                if (!level.hasChunkAt(blockPos))
+                if (!level.hasChunk(chunkPos.x, chunkPos.z))
                     continue
 
-                for (y in level.dimensionType().minY until (level.dimensionType().minY + level.dimensionType().logicalHeight)) {
-                    blockPos.set(x, y, z)
-
-                    if (!canCorruptBlock(level, blockPos))
+                for (y in (minHeight / 16)..(maxHeight / 16)) {
+                    if (Random.nextInt(5) != 0)
                         continue
 
-                    level.setBlockAndUpdate(blockPos, CORRUPTED_BLOCK.defaultBlockState())
+                    for (blockX in 0 until 16) {
+                        for (blockZ in 0 until 16) {
+                            for (blockY in 0 until 16) {
+                                blockPos.set(chunkPos.x + blockX, y + blockY, chunkPos.z + blockZ)
+
+                                if (blockPos.y > maxHeight)
+                                    continue
+
+                                level.setBlockAndUpdate(blockPos, Blocks.AIR.defaultBlockState())
+                            }
+                        }
+                    }
                 }
             }
         }
