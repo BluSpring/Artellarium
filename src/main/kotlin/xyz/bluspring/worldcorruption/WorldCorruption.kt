@@ -213,7 +213,11 @@ class WorldCorruption : ModInitializer {
 
         val CORRUPTION_DAMAGE = DamageSource("corruption").bypassArmor().bypassEnchantments().bypassMagic()
 
-        val ARTELLIC_UNSTABLE = SoundEvent(ResourceLocation(MOD_ID, "block.artellic_crystal.unstable"))
-        val CORRUPTION_SIREN = SoundEvent(ResourceLocation(MOD_ID, "event.corruption.siren"))
+        val ARTELLIC_UNSTABLE = SoundEvent(ResourceLocation(MOD_ID, "block.artellic_crystal.unstable")).apply {
+            Registry.register(Registry.SOUND_EVENT, this.location, this)
+        }
+        val CORRUPTION_SIREN = SoundEvent(ResourceLocation(MOD_ID, "event.corruption.siren")).apply {
+            Registry.register(Registry.SOUND_EVENT, this.location, this)
+        }
     }
 }
