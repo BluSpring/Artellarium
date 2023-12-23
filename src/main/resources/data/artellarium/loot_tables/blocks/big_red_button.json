@@ -16,7 +16,10 @@
       ],
       "rolls": 1.0,
       "functions": [
-        "artellarium:big_red_button"
+        {
+          "function": "minecraft:set_name",
+          "name": {"text":"Remote Control","italics":false,"italic":false}
+        }
       ]
     }
   ]
