@@ -26,6 +26,7 @@ import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.chunk.LevelChunk
 import net.minecraft.world.phys.Vec3
 import xyz.bluspring.worldcorruption.block.ArtellicCrystalBlock
+import xyz.bluspring.worldcorruption.block.BigRedButtonBlock
 import xyz.bluspring.worldcorruption.block.CorruptionBlock
 import xyz.bluspring.worldcorruption.block.entity.ArtellicCrystalBlockEntity
 import kotlin.random.Random
@@ -132,7 +133,7 @@ class WorldCorruption : ModInitializer {
                     continue
 
                 for (y in (minHeight / 16)..(maxHeight / 16)) {
-                    if (Random.nextInt(5) != 0)
+                    if (Random.nextInt(2) != 0)
                         continue
 
                     for (blockX in 0 until 16) {
@@ -215,6 +216,12 @@ class WorldCorruption : ModInitializer {
                 .isValidSpawn { _, _, _, _ -> false }
         ))
 
+        val BIG_RED_BUTTON_BLOCK = Registry.register(Registry.BLOCK, ResourceLocation(MOD_ID, "big_red_button"), BigRedButtonBlock())
+
+        val BIG_RED_BUTTON_ITEM = Registry.register(Registry.ITEM, ResourceLocation(MOD_ID, "big_red_button"), BlockItem(
+            BIG_RED_BUTTON_BLOCK, Item.Properties().stacksTo(64)
+        ))
+
         val CORRUPTED_BLOCK_ITEM = Registry.register(Registry.ITEM, ResourceLocation(MOD_ID, "corrupted_block"), BlockItem(
             CORRUPTED_BLOCK, Item.Properties().stacksTo(64)))
 
@@ -227,6 +234,9 @@ class WorldCorruption : ModInitializer {
             Registry.register(Registry.SOUND_EVENT, this.location, this)
         }
         val CORRUPTION_SIREN = SoundEvent(ResourceLocation(MOD_ID, "event.corruption.siren")).apply {
+            Registry.register(Registry.SOUND_EVENT, this.location, this)
+        }
+        val BIG_RED_BUTTON_PRESS = SoundEvent(ResourceLocation(MOD_ID, "block.big_red_button.press")).apply {
             Registry.register(Registry.SOUND_EVENT, this.location, this)
         }
     }

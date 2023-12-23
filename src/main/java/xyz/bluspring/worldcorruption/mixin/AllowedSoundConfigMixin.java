@@ -13,7 +13,7 @@ public class AllowedSoundConfigMixin {
     @Inject(method = "isAllowed", at = @At("HEAD"), cancellable = true, remap = false)
     @Dynamic
     private void disableSoundReflectivity(String soundEvent, CallbackInfoReturnable<Boolean> cir) {
-        if (soundEvent.contains("event.corruption.siren") || soundEvent.contains("artellic_crystal"))
+        if (soundEvent.contains("event.corruption.siren") || soundEvent.contains("artellic_crystal") || soundEvent.contains("artellarium") || soundEvent.contains("big_red_button"))
             cir.setReturnValue(false);
     }
 }

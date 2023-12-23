@@ -18,5 +18,13 @@
             }
         ],
         "subtitle": "subtitle.event.corruption.siren"
+    },
+    "block.big_red_button.press": {
+        "sounds": [
+            {
+                "name": "artellarium:big_red_button/press"
+            }
+        ],
+        "subtitle": "subtitle.block.big_red_button.press"
     }
 }
