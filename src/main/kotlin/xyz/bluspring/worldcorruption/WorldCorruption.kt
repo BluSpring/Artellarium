@@ -18,7 +18,6 @@ import net.minecraft.sounds.SoundSource
 import net.minecraft.world.damagesource.DamageSource
 import net.minecraft.world.item.BlockItem
 import net.minecraft.world.item.Item
-import net.minecraft.world.level.ChunkPos
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.state.BlockBehaviour
@@ -29,6 +28,7 @@ import xyz.bluspring.worldcorruption.block.ArtellicCrystalBlock
 import xyz.bluspring.worldcorruption.block.BigRedButtonBlock
 import xyz.bluspring.worldcorruption.block.CorruptionBlock
 import xyz.bluspring.worldcorruption.block.entity.ArtellicCrystalBlockEntity
+import kotlin.math.absoluteValue
 import kotlin.random.Random
 
 class WorldCorruption : ModInitializer {
@@ -87,7 +87,7 @@ class WorldCorruption : ModInitializer {
                 if (level.worldBorder.maxX < currentRadius + centerCenter.x)
                     return@register
 
-                if (level.gameTime % 100L == 0L) {
+                if (level.gameTime % 45L == 0L) {
                     radius++
                     corrupt(level)
                 }
@@ -102,17 +102,14 @@ class WorldCorruption : ModInitializer {
     }
 
     var radius = 0
-    var center = ChunkPos.ZERO
+    var center = BlockPos.ZERO
 
     fun startCorruption(ctx: CommandContext<CommandSourceStack>) {
-        center = ChunkPos((ctx.source.position.x / 16).toInt(), (ctx.source.position.z / 16).toInt())
+        center = BlockPos(ctx.source.position)
 
         ctx.source.level.playSound(null, BlockPos(ctx.source.position), ARTELLIC_UNSTABLE, SoundSource.BLOCKS, 0.7f, 1f)
 
-        for (i in 0..9) {
-            radius = i
-            corrupt(ctx.source.level)
-        }
+        radius = 4
     }
 
     fun corrupt(level: Level) {
@@ -127,27 +124,23 @@ class WorldCorruption : ModInitializer {
 
         for (x in fromX..toX) {
             for (z in fromZ..toZ) {
-                val chunkPos = ChunkPos(x, z)
+                blockPos.set(fromX, 0, fromZ)
 
-                if (!level.hasChunk(chunkPos.x, chunkPos.z))
+                if (!level.hasChunkAt(blockPos))
                     continue
 
-                for (y in (minHeight / 16)..(maxHeight / 16)) {
-                    if (Random.nextInt(2) != 0)
+                val lowMin = Random.nextInt(minHeight, maxHeight)
+
+                for (y in lowMin until Random.nextInt(lowMin, maxHeight)) {
+                    blockPos.set(fromX, y, fromZ)
+
+                    if (blockPos.y > maxHeight || blockPos.y < minHeight)
                         continue
 
-                    for (blockX in 0 until 16) {
-                        for (blockZ in 0 until 16) {
-                            for (blockY in 0 until 16) {
-                                blockPos.set(chunkPos.x + blockX, y + blockY, chunkPos.z + blockZ)
+                    if (!canCorruptBlock(level, blockPos))
+                        continue
 
-                                if (blockPos.y > maxHeight)
-                                    continue
-
-                                level.setBlockAndUpdate(blockPos, Blocks.AIR.defaultBlockState())
-                            }
-                        }
-                    }
+                    level.setBlockAndUpdate(blockPos, Blocks.AIR.defaultBlockState())
                 }
             }
         }
@@ -157,17 +150,18 @@ class WorldCorruption : ModInitializer {
         if (radius <= 0)
             return
 
+        if (radius > chunk.pos.x.absoluteValue)
+            return
+
         val blockPos = BlockPos.MutableBlockPos()
+        val level = chunk.level
+        val minHeight = level.dimensionType().minY
+        val maxHeight = minHeight + level.dimensionType().logicalHeight
 
         for (x in (chunk.pos.x * 16)..((chunk.pos.x * 16) + 15)) {
             for (z in (chunk.pos.z * 16)..((chunk.pos.z * 16) + 15)) {
-                if (x > radius || x < -radius)
-                    continue
-
-                if (z > radius || z < -radius)
-                    continue
-
-                for (y in chunk.level.dimensionType().minY until (chunk.level.dimensionType().minY + chunk.level.dimensionType().logicalHeight)) {
+                val lowMin = Random.nextInt(minHeight, maxHeight)
+                for (y in lowMin until Random.nextInt(lowMin, maxHeight)) {
                     blockPos.set(x, y, z)
 
                     val state = chunk.getBlockState(blockPos)
@@ -175,7 +169,7 @@ class WorldCorruption : ModInitializer {
                     if (!canCorruptBlock(chunk.level, blockPos, state))
                         continue
 
-                    chunk.setBlockState(blockPos, CORRUPTED_BLOCK.defaultBlockState(), false)
+                    chunk.setBlockState(blockPos, Blocks.AIR.defaultBlockState(), false)
                 }
             }
         }
@@ -186,7 +180,7 @@ class WorldCorruption : ModInitializer {
     }
 
     fun canCorruptBlock(level: Level, pos: BlockPos, state: BlockState): Boolean {
-        return !state.`is`(CORRUPTED_BLOCK) && !state.isAir && !state.hasBlockEntity() && state.fluidState.isEmpty && state.isCollisionShapeFullBlock(level, pos)
+        return !state.isAir && level.isInWorldBounds(pos) && !Registry.BLOCK.getKey(state.block).namespace.contains("gravestone")
     }
 
     companion object {

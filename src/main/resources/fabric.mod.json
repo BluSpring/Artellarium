@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
-  "id": "artellarium",
+  "id": "janus",
   "version": "${version}",
-  "name": "Artellarium",
-  "description": "",
+  "name": "Janus",
+  "description": "Where comes a beginning, comes an ending.",
   "authors": [],
   "contact": {
     "repo": "https://github.com/BluSpring/Artellarium"
