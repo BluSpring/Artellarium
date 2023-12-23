@@ -1,5 +1,6 @@
 package xyz.bluspring.worldcorruption
 
+import com.mojang.brigadier.arguments.LongArgumentType
 import com.mojang.brigadier.context.CommandContext
 import net.fabricmc.api.ModInitializer
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback
@@ -28,10 +29,10 @@ import xyz.bluspring.worldcorruption.block.ArtellicCrystalBlock
 import xyz.bluspring.worldcorruption.block.BigRedButtonBlock
 import xyz.bluspring.worldcorruption.block.CorruptionBlock
 import xyz.bluspring.worldcorruption.block.entity.ArtellicCrystalBlockEntity
-import kotlin.math.absoluteValue
-import kotlin.random.Random
 
 class WorldCorruption : ModInitializer {
+    var currentSpeed = 75L
+
     override fun onInitialize() {
         instance = this
 
@@ -69,6 +70,19 @@ class WorldCorruption : ModInitializer {
                                 1
                             }
                     )
+                    .then(
+                        Commands.literal("setspeed")
+                            .then(
+                                Commands.argument("speed", LongArgumentType.longArg(0L))
+                                    .executes {
+                                        val speed = LongArgumentType.getLong(it, "speed")
+
+                                        currentSpeed = speed
+
+                                        1
+                                    }
+                            )
+                    )
             )
         }
 
@@ -79,7 +93,7 @@ class WorldCorruption : ModInitializer {
         ServerTickEvents.END_SERVER_TICK.register { server ->
             for (level in server.allLevels) {
                 val currentRadius = radius * radius
-                val centerCenter = Vec3(center.x + 0.5, 0.0, center.z + 0.5)
+                val centerCenter = Vec3(center.x + 0.5, center.y + 0.5, center.z + 0.5)
 
                 if (currentRadius <= 0)
                     return@register
@@ -87,7 +101,7 @@ class WorldCorruption : ModInitializer {
                 if (level.worldBorder.maxX < currentRadius + centerCenter.x)
                     return@register
 
-                if (level.gameTime % 45L == 0L) {
+                if (level.gameTime % currentSpeed == 0L) {
                     radius++
                     corrupt(level)
                 }
@@ -107,9 +121,12 @@ class WorldCorruption : ModInitializer {
     fun startCorruption(ctx: CommandContext<CommandSourceStack>) {
         center = BlockPos(ctx.source.position)
 
-        ctx.source.level.playSound(null, BlockPos(ctx.source.position), ARTELLIC_UNSTABLE, SoundSource.BLOCKS, 0.7f, 1f)
+        ctx.source.level.playSound(null, center, ARTELLIC_UNSTABLE, SoundSource.BLOCKS, 0.7f, 1f)
 
-        radius = 4
+        for (i in 0..9) {
+            radius = i
+            corrupt(ctx.source.level)
+        }
     }
 
     fun corrupt(level: Level) {
@@ -119,23 +136,16 @@ class WorldCorruption : ModInitializer {
         val toZ = center.z + radius
 
         val blockPos = BlockPos.MutableBlockPos()
-        val minHeight = level.dimensionType().minY
-        val maxHeight = minHeight + level.dimensionType().logicalHeight
 
         for (x in fromX..toX) {
             for (z in fromZ..toZ) {
-                blockPos.set(fromX, 0, fromZ)
+                blockPos.set(x, 0, z)
 
                 if (!level.hasChunkAt(blockPos))
                     continue
 
-                val lowMin = Random.nextInt(minHeight, maxHeight)
-
-                for (y in lowMin until Random.nextInt(lowMin, maxHeight)) {
-                    blockPos.set(fromX, y, fromZ)
-
-                    if (blockPos.y > maxHeight || blockPos.y < minHeight)
-                        continue
+                for (y in level.dimensionType().minY until (level.dimensionType().minY + level.dimensionType().logicalHeight)) {
+                    blockPos.set(x, y, z)
 
                     if (!canCorruptBlock(level, blockPos))
                         continue
@@ -150,18 +160,17 @@ class WorldCorruption : ModInitializer {
         if (radius <= 0)
             return
 
-        if (radius > chunk.pos.x.absoluteValue)
-            return
-
         val blockPos = BlockPos.MutableBlockPos()
-        val level = chunk.level
-        val minHeight = level.dimensionType().minY
-        val maxHeight = minHeight + level.dimensionType().logicalHeight
 
         for (x in (chunk.pos.x * 16)..((chunk.pos.x * 16) + 15)) {
             for (z in (chunk.pos.z * 16)..((chunk.pos.z * 16) + 15)) {
-                val lowMin = Random.nextInt(minHeight, maxHeight)
-                for (y in lowMin until Random.nextInt(lowMin, maxHeight)) {
+                if (x > radius || x < -radius)
+                    continue
+
+                if (z > radius || z < -radius)
+                    continue
+
+                for (y in chunk.level.dimensionType().minY until (chunk.level.dimensionType().minY + chunk.level.dimensionType().logicalHeight)) {
                     blockPos.set(x, y, z)
 
                     val state = chunk.getBlockState(blockPos)
