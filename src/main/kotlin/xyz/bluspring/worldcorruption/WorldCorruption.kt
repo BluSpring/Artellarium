@@ -123,7 +123,7 @@ class WorldCorruption : ModInitializer {
 
         ctx.source.level.playSound(null, center, ARTELLIC_UNSTABLE, SoundSource.BLOCKS, 0.7f, 1f)
 
-        for (i in 0..9) {
+        for (i in 0..3) {
             radius = i
             corrupt(ctx.source.level)
         }
